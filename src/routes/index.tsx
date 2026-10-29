@@ -182,7 +182,7 @@ function Index() {
       {/* LAYANAN */}
       <section id="layanan" className="mx-auto max-w-6xl px-4 py-20">
         <SectionHead title="Layanan Kami" sub="Pilih layanan legalitas yang sesuai dengan kebutuhanmu." />
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {SERVICE_CARDS.map((s) => (
             <div key={s.id} className="group flex flex-col rounded-3xl border border-border bg-card p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-lift">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-deep text-primary-foreground"><s.icon className="h-7 w-7" /></span>
