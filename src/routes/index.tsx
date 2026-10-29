@@ -187,7 +187,7 @@ function Index() {
             <div key={s.id} className="group flex flex-col rounded-3xl border border-border bg-card p-7 shadow-soft transition hover:-translate-y-1 hover:shadow-lift">
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-deep text-primary-foreground"><s.icon className="h-7 w-7" /></span>
               <h3 className="mt-6 text-xl font-semibold">{SERVICES[s.id].name}</h3>
-              <p className="mt-3 flex-1 text-muted-foreground">{s.desc}</p>
+              <p className="mt-3 min-h-[4.5rem] flex-1 text-muted-foreground">{s.desc}</p>
               <button onClick={() => setBenefitOpen(benefitOpen === s.id ? null : s.id)} aria-expanded={benefitOpen === s.id} className="mt-5 inline-flex items-center gap-1 self-start text-sm font-semibold text-primary hover:underline">
                 {benefitOpen === s.id ? "Sembunyikan benefit" : "Lihat benefit"}
                 <ChevronDown className={`h-4 w-4 transition-transform ${benefitOpen === s.id ? "rotate-180" : ""}`} />
