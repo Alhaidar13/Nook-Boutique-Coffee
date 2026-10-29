@@ -33,10 +33,10 @@ const SERVICE_CARDS: { id: ServiceId; icon: typeof FileText; desc: string; cta: 
   { id: "pt", icon: Building2, desc: "Bantuan pengurusan pendirian PT Perorangan untuk pengusaha yang ingin membangun usaha dengan bentuk badan usaha yang sesuai.", cta: "Konsultasi PT Perorangan" },
 ];
 
-const PRICING_FEATURES: Record<ServiceId, string[]> = {
-  npwp: ["Konsultasi kebutuhan", "Penjelasan persyaratan", "Pendampingan proses"],
-  nib: ["Konsultasi KBLI", "Penjelasan persyaratan", "Pendampingan proses"],
-  pt: ["Konsultasi nama & KBLI", "Penjelasan persyaratan", "Pendampingan proses"],
+const BENEFITS: Record<ServiceId, string[]> = {
+  npwp: ["Syarat administrasi perpajakan & pekerjaan", "Dibutuhkan untuk pengajuan kredit/bank", "Memudahkan pelaporan pajak", "Pendampingan proses dari awal"],
+  nib: ["Identitas resmi usaha di sistem OSS", "Berlaku sebagai izin usaha dasar", "Membuka akses pembiayaan & program pemerintah", "Bantuan pemilihan KBLI yang sesuai"],
+  pt: ["Usaha berbadan hukum dengan satu pendiri", "Pemisahan harta pribadi dan usaha", "Meningkatkan kepercayaan mitra & klien", "Bantuan nama PT dan KBLI"],
 };
 
 const STEPS = [
@@ -90,6 +90,7 @@ function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [modal, setModal] = useState<{ open: boolean; service: ServiceId | "" }>({ open: false, service: "" });
+  const [benefitOpen, setBenefitOpen] = useState<ServiceId | null>(null);
   const [faqOpen, setFaqOpen] = useState<number | null>(0);
 
   useEffect(() => {
@@ -187,6 +188,15 @@ function Index() {
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-deep text-primary-foreground"><s.icon className="h-7 w-7" /></span>
               <h3 className="mt-6 text-xl font-semibold">{SERVICES[s.id].name}</h3>
               <p className="mt-3 flex-1 text-muted-foreground">{s.desc}</p>
+              <button onClick={() => setBenefitOpen(benefitOpen === s.id ? null : s.id)} aria-expanded={benefitOpen === s.id} className="mt-5 inline-flex items-center gap-1 self-start text-sm font-semibold text-primary hover:underline">
+                {benefitOpen === s.id ? "Sembunyikan benefit" : "Lihat benefit"}
+                <ChevronDown className={`h-4 w-4 transition-transform ${benefitOpen === s.id ? "rotate-180" : ""}`} />
+              </button>
+              {benefitOpen === s.id && (
+                <ul className="mt-4 space-y-2 rounded-2xl bg-accent/60 p-4 text-sm">
+                  {BENEFITS[s.id].map((b) => <li key={b} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />{b}</li>)}
+                </ul>
+              )}
               <div className="mt-6 font-display text-3xl font-bold text-primary">{formatRupiah(SERVICES[s.id].price)}</div>
               <button onClick={() => consult(s.id)} className="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-primary/30 py-3 font-semibold text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
                 {s.cta} <ArrowRight className="h-4 w-4" />
@@ -212,27 +222,6 @@ function Index() {
         </div>
       </section>
 
-      {/* HARGA */}
-      <section id="harga" className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHead title="Harga Layanan" sub="Harga jelas dan transparan untuk setiap layanan." />
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {(Object.keys(SERVICES) as ServiceId[]).map((id) => {
-            const hl = id === "pt";
-            return (
-              <div key={id} className={`flex flex-col rounded-3xl p-8 transition hover:-translate-y-1 ${hl ? "bg-gradient-deep text-primary-foreground shadow-lift" : "border border-border bg-card shadow-soft"}`}>
-                <h3 className="text-lg font-semibold">{SERVICES[id].short}</h3>
-                <div className="mt-4 font-display text-4xl font-extrabold">{formatRupiah(SERVICES[id].price)}</div>
-                <p className={`mt-2 text-sm ${hl ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{SERVICES[id].name}</p>
-                <ul className="mt-6 flex-1 space-y-3 text-sm">
-                  {PRICING_FEATURES[id].map((f) => <li key={f} className="flex items-center gap-2"><Check className="h-4 w-4" /> {f}</li>)}
-                </ul>
-                <button onClick={() => consult(id)} className={`mt-8 rounded-full py-3 font-semibold transition hover:opacity-90 ${hl ? "bg-card text-primary" : "bg-gradient-deep text-primary-foreground"}`}>Konsultasi Sekarang</button>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* WHY */}
       <section className="bg-accent/50 py-20">
         <div className="mx-auto max-w-6xl px-4">
@@ -254,10 +243,7 @@ function Index() {
         <div className="mx-auto max-w-6xl px-4">
           <SectionHead title="Apa Kata Mereka?" sub="Pengalaman pelanggan dalam memahami dan mengurus kebutuhan legalitas usaha." />
         </div>
-        <div className="fade-edges mt-12 space-y-6 overflow-hidden">
-          <MarqueeRow items={TESTI_ROW1} dir="right" />
-          <MarqueeRow items={TESTI_ROW2} dir="left" />
-        </div>
+        <TestiCarousel items={[...TESTI_ROW1, ...TESTI_ROW2]} />
       </section>
 
       {/* FAQ */}
@@ -349,24 +335,48 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-function MarqueeRow({ items, dir }: { items: string[][]; dir: "left" | "right" }) {
-  const card = (key: string, [text, svc]: string[], dup: boolean) => (
-    <div key={key} aria-hidden={dup} className={`${dup ? "marquee-dup " : ""}w-80 shrink-0 rounded-3xl border border-border bg-card p-6 shadow-soft`}>
-      <div className="flex gap-1 text-star">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
-      <p className="mt-4 text-sm text-foreground">"{text}"</p>
-      <div className="mt-5 flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-deep font-display text-sm font-semibold text-primary-foreground">PL</span>
-        <div>
-          <div className="text-sm font-semibold">Pelanggan LegalCraft</div>
-          <div className="text-xs text-muted-foreground">{svc}</div>
+function TestiCarousel({ items }: { items: string[][] }) {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [perView, setPerView] = useState(3);
+  useEffect(() => {
+    const r = () => setPerView(window.innerWidth < 640 ? 1 : window.innerWidth < 1024 ? 2 : 3);
+    r(); window.addEventListener("resize", r);
+    return () => window.removeEventListener("resize", r);
+  }, []);
+  const max = items.length - perView;
+  useEffect(() => {
+    if (paused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => setIdx((i) => (i >= max ? 0 : i + 1)), 3500);
+    return () => clearInterval(t);
+  }, [paused, max]);
+  const cur = Math.min(idx, max);
+  return (
+    <div className="mx-auto mt-12 max-w-6xl px-4" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="overflow-hidden py-4">
+        <div className="flex transition-transform duration-700 ease-out" style={{ transform: `translateX(-${(cur * 100) / perView}%)` }}>
+          {items.map(([text, svc], i) => (
+            <div key={i} className="shrink-0 px-3" style={{ width: `${100 / perView}%` }}>
+              <div className="h-full rounded-3xl border border-border bg-card p-6 shadow-soft">
+                <div className="flex gap-1 text-star">{Array.from({ length: 5 }).map((_, k) => <Star key={k} className="h-4 w-4 fill-current" />)}</div>
+                <p className="mt-4 text-sm text-foreground">"{text}"</p>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-gradient-deep font-display text-sm font-semibold text-primary-foreground">PL</span>
+                  <div>
+                    <div className="text-sm font-semibold">Pelanggan LegalCraft</div>
+                    <div className="text-xs text-muted-foreground">{svc}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
-  );
-  return (
-    <div className={`marquee-track flex w-max gap-6 px-3 ${dir === "left" ? "animate-marquee-left" : "animate-marquee-right"}`}>
-      {items.map((t, i) => card(`a${i}`, t, false))}
-      {items.map((t, i) => card(`b${i}`, t, true))}
+      <div className="mt-4 flex justify-center gap-2">
+        {Array.from({ length: max + 1 }).map((_, i) => (
+          <button key={i} aria-label={`Slide ${i + 1}`} onClick={() => setIdx(i)} className={`h-2.5 rounded-full transition-all ${i === cur ? "w-8 bg-primary" : "w-2.5 bg-primary/25"}`} />
+        ))}
+      </div>
     </div>
   );
 }
