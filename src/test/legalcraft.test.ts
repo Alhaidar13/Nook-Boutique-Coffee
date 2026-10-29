@@ -10,7 +10,7 @@ describe("LegalCraft rules", () => {
   it("whatsapp url uses LegalCraft number and includes price", () => {
     const url = buildWhatsAppUrl({ name: "A", email: "a@b.co", phone: "0812345678", service: "pt", note: "" });
     expect(url.startsWith("https://wa.me/6287797890306?text=")).toBe(true);
-    expect(decodeURIComponent(url.split("text=")[1])).toContain("Harga: Rp200.000");
+    expect(decodeURIComponent(url.split("text=")[1] ?? "")).toContain("Harga: Rp200.000");
   });
   it("validation rejects bad email and missing service, note optional", () => {
     const e = validateConsult({ name: "A", email: "bad", phone: "0812345678", service: "", note: "" });
